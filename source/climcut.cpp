@@ -247,11 +247,12 @@ emscripten::val mcut_n() {
 }
 
 emscripten::val mcut_v(int g) {
-  return emscripten::val(emscripten::typed_memory_view(g_vtx_n, g_vtx));
+  return emscripten::val(emscripten::typed_memory_view( g_vtx_group[g].size(), ((double *)(&(g_vtx_group[g][0]))) ) );
 }
 
 emscripten::val mcut_f(int g) {
-  return emscripten::val(emscripten::typed_memory_view(g_face_n, g_face));
+  //return emscripten::val(emscripten::typed_memory_view(g_face_n, g_face));
+  return emscripten::val(emscripten::typed_memory_view( g_face_group[g].size(), ((uint32_t *)(&(g_face_group[g][0]))) ) );
 }
 
 EMSCRIPTEN_BINDINGS(mcut_js_function_bindings) {
@@ -280,8 +281,6 @@ struct InputMesh {
 };
 
 
-
-
 int mcutop( double *subj_vtx, int subj_n_vtx, int *subj_face, int subj_n_face,
             double *clip_vtx, int clip_n_vtx, int *clip_face, int clip_n_face,
             int op) {
@@ -292,7 +291,6 @@ int mcutop( double *subj_vtx, int subj_n_vtx, int *subj_face, int subj_n_face,
   McResult err;
 
   McFlags flags = MC_DISPATCH_FILTER_ALL;
-  //McFlags flag_opts[4];
 
   uint32_t n_component;
   int patch_idx=0;
@@ -421,66 +419,7 @@ int mcutop( double *subj_vtx, int subj_n_vtx, int *subj_face, int subj_n_face,
     //
     g_vtx_group.push_back( ccVertices );
     g_face_group.push_back( ccFaceIndices );
-
-    continue;
-
-
-    /*
-    int faceVertexOffsetBase = 0;
-
-    _v.clear();
-    //_res_vv.clear();
-
-    for (uint32_t f = 0; f < ccFaceCount; ++f) {
-      bool reverseWindingOrder = (fragmentLocation == MC_FRAGMENT_LOCATION_BELOW) && (patchLocation == MC_PATCH_LOCATION_OUTSIDE);
-      int faceSize = faceSizes.at(f);
-
-      //_v.clear();
-
-      // for each vertex in face
-      //
-      for ( int v = (reverseWindingOrder ? (faceSize - 1) : 0);
-            (reverseWindingOrder ? (v >= 0) : (v < faceSize));
-            v += (reverseWindingOrder ? -1 : 1)) {
-        const int ccVertexIdx = ccFaceIndices[(uint64_t)faceVertexOffsetBase + v];
-        _v.push_back( ccVertices[(ccVertexIdx*3) + 0] );
-        _v.push_back( ccVertices[(ccVertexIdx*3) + 1] );
-        _v.push_back( ccVertices[(ccVertexIdx*3) + 2] );
-      }
-
-      //_res_vv.push_back(_v);
-      faceVertexOffsetBase += faceSize;
-    }
-
-    g_vtx_group.push_back(_v);
-    */
-
   }
-
-  return 0;
-
-  for (i=0; i<_res_vv.size(); i++) {
-    for (int j=0; j<_res_vv[i].size(); j+=3) {
-      printf("v %f %f %f\n", (float)_res_vv[i][j],(float)_res_vv[i][j+1],(float)_res_vv[i][j+2]);
-      //printf("%f %f %f\n", (float)_res_vv[i][j],(float)_res_vv[i][j+1],(float)_res_vv[i][j+2]);
-    }
-    //printf("\n\n");
-  }
-
-  int count=1;
-  for (i=0; i<_res_vv.size(); i++) {
-    printf("f");
-    //printf("%i", 3);
-    for (int j=0; j<_res_vv[i].size(); j+=3) {
-      printf(" %i", count);
-
-      //printf("%i", count);
-      //if (j==0) { printf(" "); }
-      count++;
-    }
-    printf("\n");
-  }
-  //printf("\n");
 
   return 0;
 }
@@ -566,10 +505,12 @@ int main(int argc, char **argv) {
   std::string out_fmt = "obj";
 
   #ifdef CC_EMSCRIPTEN
+
   // if we're compiling for JS, just bag out so user can
   // use mcutop
   // 
   return 0;
+
   #endif
 
 
@@ -630,18 +571,16 @@ int main(int argc, char **argv) {
 
   //------
 
-  //McResult err = mcCreateContext(&ctx, MC_DEBUG);
   McResult err = mcCreateContext(&ctx, 0);
   if (err != MC_NO_ERROR) { exit(-1); }
 
   err = mcDebugMessageControl(ctx, MC_DEBUG_SOURCE_ALL, MC_DEBUG_TYPE_ALL, MC_DEBUG_SEVERITY_ALL, false);
 
-  //_r = loadMeshOFF(srcMesh, "data/bunny.off");
   _r = loadMeshOFF(srcMesh, subj_fn.c_str());
-  if (_r < 0) { fprintf(stderr, "error loading bunny.off"); exit(-1); }
-  //_r = loadMeshOFF(cutMesh, "data/armadillo.off");
+  if (_r < 0) { fprintf(stderr, "error loading subject file"); exit(-1); }
+
   _r = loadMeshOFF(cutMesh, clip_fn.c_str());
-  if (_r < 0) { fprintf(stderr, "error loading armadillo.off"); exit(-1); }
+  if (_r < 0) { fprintf(stderr, "error loading clip file"); exit(-1); }
 
   mcutop( srcMesh.vertexCoordsArray.data(), srcMesh.vertexCoordsArray.size()/3,
           (int *)srcMesh.faceIndicesArray.data(), srcMesh.faceSizesArray.size(),
@@ -649,165 +588,9 @@ int main(int argc, char **argv) {
           (int *)cutMesh.faceIndicesArray.data(), cutMesh.faceSizesArray.size(),
           op_idx);
 
-  //debug_print(0);
-
   std::string base_fn = "_out";
   int _ret=0;
 
   _ret = print_fn(base_fn, out_fmt, -1);
-  printf(">> got %i\n", _ret);
-
-
-  exit(0);
-
-  //printf("starting...\n"); fflush(stdout);
-
-  err = mcDispatch( ctx,
-                    MC_DISPATCH_VERTEX_ARRAY_DOUBLE |
-                      MC_DISPATCH_ENFORCE_GENERAL_POSITION |
-                      flags,
-                    (const void *)(srcMesh.vertexCoordsArray.data()),
-                    (const uint32_t *)(srcMesh.faceIndicesArray.data()),
-                    srcMesh.faceSizesArray.data(),
-                    (uint32_t)(srcMesh.vertexCoordsArray.size() / 3),
-                    (uint32_t)(srcMesh.faceSizesArray.size()),
-
-                    (const void *)(cutMesh.vertexCoordsArray.data()),
-                    cutMesh.faceIndicesArray.data(),
-                    cutMesh.faceSizesArray.data(),
-                    (uint32_t)(cutMesh.vertexCoordsArray.size() / 3),
-                    (uint32_t)(cutMesh.faceSizesArray.size()));
-  if (err != MC_NO_ERROR) { exit(-2); }
-
-  //printf("ok\n"); fflush(stdout);
-
-  err = mcGetConnectedComponents(ctx, MC_CONNECTED_COMPONENT_TYPE_FRAGMENT, 0, NULL, &n_component);
-  if (err != MC_NO_ERROR) { exit(-2); }
-
-  //printf("connected components: %d\n", (int)n_component);
-
-  if (n_component == 0) {
-    fprintf(stdout, "no connected components found\n");
-    exit(0);
-  }
-
-  std::vector<McConnectedComponent> connectedComponents(n_component, MC_NULL_HANDLE);
-  connectedComponents.resize(n_component);
-  err = mcGetConnectedComponents( ctx,
-                                  MC_CONNECTED_COMPONENT_TYPE_FRAGMENT,
-                                  (uint32_t)connectedComponents.size(),
-                                  connectedComponents.data(),
-                                  NULL);
-  if (err != MC_NO_ERROR) { exit_err(err); }
-
-  for (patch_idx = 0; patch_idx < n_component; patch_idx++) {
-
-    // query the data of each connected component from MCUT
-    // -------------------------------------------------------
-
-    McConnectedComponent connComp = connectedComponents[patch_idx];
-
-    // query the vertices
-    // ----------------------
-
-    uint64_t numBytes = 0;
-    err = mcGetConnectedComponentData(ctx, connComp, MC_CONNECTED_COMPONENT_DATA_VERTEX_DOUBLE, 0, NULL, &numBytes);
-    if (err != MC_NO_ERROR) { exit_err(err); }
-
-    uint32_t ccVertexCount = (uint32_t)(numBytes / (sizeof(double) * 3));
-    std::vector<double> ccVertices((uint64_t)ccVertexCount * 3u, 0);
-    err = mcGetConnectedComponentData(ctx, connComp, MC_CONNECTED_COMPONENT_DATA_VERTEX_DOUBLE, numBytes, (void*)ccVertices.data(), NULL);
-    if (err != MC_NO_ERROR) { exit_err(err); }
-
-    // query the faces
-    // -------------------
-    numBytes = 0;
-
-    err = mcGetConnectedComponentData(ctx, connComp, MC_CONNECTED_COMPONENT_DATA_FACE_TRIANGULATION, 0, NULL, &numBytes);
-    if (err != MC_NO_ERROR) { exit_err(err); }
-
-    std::vector<uint32_t> ccFaceIndices(numBytes / sizeof(uint32_t), 0);
-    err = mcGetConnectedComponentData(ctx, connComp, MC_CONNECTED_COMPONENT_DATA_FACE_TRIANGULATION, numBytes, ccFaceIndices.data(), NULL);
-    if (err != MC_NO_ERROR) { exit_err(err); }
-
-    std::vector<uint32_t> faceSizes(ccFaceIndices.size() / 3, 3);
-    const uint32_t ccFaceCount = static_cast<uint32_t>(faceSizes.size());
-
-    /// ------------------------------------------------------------------------------------
-
-    // Here we show, how to know when connected components, pertain particular boolean operations.
-
-
-    McPatchLocation patchLocation = (McPatchLocation)0;
-
-    err = mcGetConnectedComponentData(ctx, connComp, MC_CONNECTED_COMPONENT_DATA_PATCH_LOCATION, sizeof(McPatchLocation), &patchLocation, NULL);
-    if (err != MC_NO_ERROR) { exit_err(err); }
-
-    McFragmentLocation fragmentLocation = (McFragmentLocation)0;
-    err = mcGetConnectedComponentData(  ctx,
-                                        connComp,
-                                        MC_CONNECTED_COMPONENT_DATA_FRAGMENT_LOCATION,
-                                        sizeof(McFragmentLocation), &fragmentLocation,
-                                        NULL);
-    if (err != MC_NO_ERROR) { exit_err(err); }
-
-    if (out_fn == "-") { ofp = stdout; }
-    else {
-
-      std::string numstr = std::to_string(patch_idx);
-      std::string foo = numstr;
-      foo += out_fn;
-
-      //ofp = fopen( out_fn.c_str(), "w" );
-      ofp = fopen( foo.c_str(), "w" );
-
-
-    }
-
-    // write vertices and normals
-    for (uint32_t i = 0; i < ccVertexCount; ++i) {
-        double x = ccVertices[(uint64_t)i * 3 + 0];
-        double y = ccVertices[(uint64_t)i * 3 + 1];
-        double z = ccVertices[(uint64_t)i * 3 + 2];
-        //file << "v " << std::setprecision(std::numeric_limits<long double>::digits10 + 1) << x << " " << y << " " << z << std::endl;
-        fprintf(ofp, "v %f %f %f\n", x, y, z);
-    }
-
-    int faceVertexOffsetBase = 0;
-
-    // for each face in CC
-    for (uint32_t f = 0; f < ccFaceCount; ++f) {
-      bool reverseWindingOrder = (fragmentLocation == MC_FRAGMENT_LOCATION_BELOW) && (patchLocation == MC_PATCH_LOCATION_OUTSIDE);
-      int faceSize = faceSizes.at(f);
-      //file << "f ";
-      fprintf(ofp, "f ");
-      // for each vertex in face
-      for (int v = (reverseWindingOrder ? (faceSize - 1) : 0);
-        (reverseWindingOrder ? (v >= 0) : (v < faceSize));
-        v += (reverseWindingOrder ? -1 : 1)) {
-        const int ccVertexIdx = ccFaceIndices[(uint64_t)faceVertexOffsetBase + v];
-        //file << (ccVertexIdx + 1) << " ";
-        fprintf(ofp, "%i ", (int)(ccVertexIdx+1));
-      } // for (int v = 0; v < faceSize; ++v) {
-      //file << std::endl;
-      fprintf(ofp, "\n");
-
-      faceVertexOffsetBase += faceSize;
-    }
-
-    if (ofp != stdout) { fclose(ofp); }
-
-  }
-
-
-  // 6. free connected component data
-  // --------------------------------
-  err = mcReleaseConnectedComponents(ctx, (uint32_t)connectedComponents.size(), connectedComponents.data());
-  if (err != MC_NO_ERROR) { exit_err(err); }
-
-
-  err = mcReleaseContext(ctx);
-  if (err != MC_NO_ERROR) { exit_err(err); }
-
-  //printf("end\n");
+  if (_ret < 0) { exit(-1); }
 }

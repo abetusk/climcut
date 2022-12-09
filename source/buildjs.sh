@@ -10,6 +10,9 @@ source ./emsdk_env.sh
 popd
 
 emcc \
+  -sWASM=1 \
+  -sSINGLE_FILE \
+  -O3 \
   -DCC_EMSCRIPTEN \
   -lembind \
   -I$emscoredir \
@@ -23,7 +26,7 @@ emcc \
   ../mcut/source/*.c \
   -o ../bin/mcut.js \
   -sEXPORTED_FUNCTIONS=_mcutop,_climcut_hello \
-  -sEXPORTED_RUNTIME_METHODS=ccal,cwrap
+  -sEXPORTED_RUNTIME_METHODS=ccall,cwrap
 
 
 #  -I$HOME/lib/include \

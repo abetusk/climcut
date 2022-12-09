@@ -7,6 +7,7 @@ eig3flag=`pkg-config --cflags eigen3`
 
 
 g++ \
+  -O3 \
   -L$MCUTLIBDIR \
   -I$MCUTINCDIR \
   $eig3flag \
