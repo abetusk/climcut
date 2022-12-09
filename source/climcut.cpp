@@ -29,14 +29,6 @@
 #include <igl/read_triangle_mesh.h>
 #include <igl/writeOBJ.h>
 
-/*
-double *g_vtx=NULL;
-size_t g_vtx_n=0;
-
-uint32_t *g_face=NULL;
-size_t  g_face_n=0;
-*/
-
 std::vector< std::vector<double> > g_vtx_group;
 std::vector< std::vector<uint32_t> > g_face_group;
 
@@ -253,7 +245,6 @@ emscripten::val mcut_v(int g) {
 }
 
 emscripten::val mcut_f(int g) {
-  //return emscripten::val(emscripten::typed_memory_view(g_face_n, g_face));
   return emscripten::val(emscripten::typed_memory_view( g_face_group[g].size(), ((uint32_t *)(&(g_face_group[g][0]))) ) );
 }
 
@@ -264,7 +255,6 @@ EMSCRIPTEN_BINDINGS(mcut_js_function_bindings) {
 }
 
 #endif
-
 
 
 void exit_err(McResult err) {
