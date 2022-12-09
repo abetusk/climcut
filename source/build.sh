@@ -3,17 +3,22 @@
 MCUTLIBDIR="../mcut/build/bin"
 MCUTINCDIR="../mcut/include"
 
+eig3flag=`pkg-config --cflags eigen3`
+
+
 g++ \
-  -I/usr/include/eigen3 \
   -L$MCUTLIBDIR \
-  -I$HOME/lib/include \
-  -I/usr/include/eigen3 \
   -I$MCUTINCDIR \
+  $eig3flag \
+  -I../libigl/include \
   climcut.cpp \
   -o ../bin/climcut \
-  -lmcut \
-  -I/usr/include/eigen3
+  -lmcut
 
 #  -L../bin \
 #  -I../../include \
+#  -I/usr/include/eigen3 \
+#  -I$HOME/lib/include \
+#  -I/usr/include/eigen3
+#  -I/usr/include/eigen3 \
 

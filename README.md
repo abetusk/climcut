@@ -19,6 +19,38 @@ Also included is a bare-bones (potentially clunky) `JavaScript` port via `emscri
   [-h]         help (this screen)
 ```
 
+## Gotchas
+
+`runmeifyoudare.sh` tries to install (locally) and build the appropriate dependencies.
+
+You'll need to install `eigen3` if you haven't already.
+On an Ubuntu system, this can be done via:
+
+```
+sudo apt-get install libeigen3-dev
+```
+
+`runmeifyoudare.sh` will try to compile the native command line tool but you can try running it yourself
+by running going into the `source/` directory and running `./build.sh` there.
+If successful, this should create a file in `bin/climcut`.
+To run, you'll need to make sure the shared library path is set in your environment variable if you haven't installed
+`mcut` globally.
+
+This can be done via:
+
+```
+LD_LIBRARY_PATH=`pwd`/mcut/build/bin ./bin/climcut
+```
+
+Or:
+
+```
+export LD_LIBRARY_PATH=`pwd`/mcut/build/bin
+./bin/climcut
+```
+
+For some persistence.
+
 ## Discussion
 
 Boy is this hacky!

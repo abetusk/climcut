@@ -1,25 +1,37 @@
 #!/bin/bash
 
-emscoredir=$HOME/git/github/emscripten-core/emscripten/system/include
-emsdkdir=$HOME/git/github/emscripten-core/emsdk
+emscoredir=../emsdk/upstream/emscripten/cache/sysroot/include
+emsdkdir=../emsdk
+
+eig3flag=`pkg-config --cflags eigen3`
 
 pushd $emsdkdir
 source ./emsdk_env.sh
 popd
 
 emcc \
-  -I/usr/include/eigen3 \
-  -L../bin \
-  -I$HOME/lib/include \
-  -I/usr/include/eigen3 \
-  -I../../include \
+  -DCC_EMSCRIPTEN \
+  -lembind \
+  -I$emscoredir \
+  -I$emsdkdir \
+  $eig3flag \
+  -I../libigl/include \
+  -L../mcut/build/bin \
+  -I../mcut/include \
   climcut.cpp \
-  ../../source/*.cpp \
-  ../../source/*.c \
-  -o climcut.js \
-  -I/usr/include/eigen3 \
-  -sEXPORTED_FUNCTIONS=_mcutop \
+  ../mcut/source/*.cpp \
+  ../mcut/source/*.c \
+  -o ../bin/mcut.js \
+  -sEXPORTED_FUNCTIONS=_mcutop,_climcut_hello \
   -sEXPORTED_RUNTIME_METHODS=ccal,cwrap
+
+
+#  -I$HOME/lib/include \
+#  -I/usr/include/eigen3 \
+#  -I/usr/include/eigen3 \
+#  -I/usr/include/eigen3 \
+#  -sFULL_ES3=1 \
+#  -sWASM=1 \
 
 
 

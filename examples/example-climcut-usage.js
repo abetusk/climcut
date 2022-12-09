@@ -1,27 +1,18 @@
 // LICENSE: cc0
 //
 
-function allready() {
-  console.log(">>>go");
-}
+var mcut = require("../bin/mcut.js");
 
-var aaa = allready;
-
-var ok = require("./a.out.js");
-var ko = new require("./a.out.js");
-
-function checkf() {
-  if (typeof ok.getBytes === "undefined") {
-    console.log("nope"); 
-    setTimeout(checkf, 1);
+function check_init() {
+  if (typeof mcut._mcutop === "undefined") {
+    setTimeout(check_init, 1);
     return;
   }
 
-  console.log("ok!");
   _main();
-
 }
 
+//----
 // https://stackoverflow.com/a/46154154 by https://stackoverflow.com/users/1447675/nina-scholz
 // CC-BY-SA
 //
@@ -30,8 +21,14 @@ function getFloat(a) {
   a.forEach(function (b, i) { view.setUint8(i, b); });
   return view.getFloat64(0);
 }
+//
+//----
+
 
 function _main() {
+
+  console.log("ok...\n");
+  return;
 
   let iv_ptr = ok._malloc(4*4);
   let dv_ptr = ok._malloc(8*4);
@@ -81,7 +78,7 @@ function _main() {
 
 }
 
-setTimeout( checkf, 1);
+setTimeout( check_init, 1);
 
 
 //console.log("????", ok.getBytes);

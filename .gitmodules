@@ -1,3 +1,9 @@
 [submodule "mcut"]
 	path = mcut
 	url = https://github.com/cutdigital/mcut
+[submodule "emsdk"]
+	path = emsdk
+	url = https://github.com/emscripten-core/emsdk
+[submodule "libigl"]
+	path = libigl
+	url = https://github.com/libigl/libigl/

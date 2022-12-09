@@ -190,7 +190,7 @@ int print_fn(std::string &ofn, std::string &oft, int g) {
   if (g>=0) {
     if (ofp != stdout) {
       ofp = fopen(ofn.c_str(), "w");
-      if (ofp < 0) { return -1; }
+      if (ofp == NULL) { return -1; }
     }
 
     if      (sfx == ".gp")  { print_GP_g(ofp, g); }
@@ -212,7 +212,7 @@ int print_fn(std::string &ofn, std::string &oft, int g) {
       fn += sfx;
 
       ofp = fopen(fn.c_str(), "w");
-      if (ofp < 0) { return -1; }
+      if (ofp == NULL) { return -1; }
     }
 
     if      (sfx == ".gp")  { print_GP_g(ofp, g); }
