@@ -4,6 +4,9 @@
 *~
 bin/climcut
 
+.tmp
+.bak
+
 
 # Prerequisites
 *.d

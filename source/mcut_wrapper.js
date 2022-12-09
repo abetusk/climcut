@@ -1,24 +1,11 @@
 // LICENSE: cc0
 //
+// To the extent possible under law, the person who associated CC0 with
+// this source file has waived all copyright and related or neighboring rights
+// to this source file.
+//    
 
-// a simple example program showing how to use the base level
-// functionality of the mcut JS port.
-//
-// ccall on `mcutop` to do the actual mcut operation
-//
-// `mcut_n` - get the component count
-// `mcut_v` - get the vertex array of the component
-// `mcut_f` - get the face array of the component
-//
-// The example geometry is a json-ifyied version of the
-// `examples/data/cyl*.off` files for ease of testing.
-//
-// On my machine it looks like it takes about 20ms to
-// do a round trip (malloc and format data, send to
-// mcutop, get result and transfer to js array/structure).
-//
-
-var mcut = require("../bin/mcut.js");
+var Module = require("../bin/mcut.js");
 
 var cyl0 = {
   "v": [
@@ -108,17 +95,18 @@ var cyl1 = {
   ],
 
   "f": [
-		0,1,2, 		0,3,1, 		3,4,1, 		3,5,4, 		5,6,4, 		5,7,6, 		7,8,6, 		7,9,8,
-		9,10,8, 	9,11,10, 	11,12,10, 11,13,12, 13,14,12, 13,15,14, 15,16,14, 15,17,16,
-		17,18,16, 17,19,18, 19,20,18, 19,21,20, 21,22,20, 21,23,22, 23,24,22, 23,25,24,
-		25,26,24, 25,27,26, 27,28,26, 27,29,28, 29,30,28, 29,31,30, 31,2,30, 	31,0,2,
-		32,2,1, 	32,1,4, 	32,4,6, 	32,6,8, 	32,8,10, 	32,10,12, 32,12,14, 32,14,16,
-		32,16,18, 32,18,20, 32,20,22, 32,22,24, 32,24,26, 32,26,28, 32,28,30, 32,30,2,
-		3,0,33, 	5,3,33, 	7,5,33, 	9,7,33, 	11,9,33, 	13,11,33, 15,13,33, 17,15,33,
-		19,17,33, 21,19,33, 23,21,33, 25,23,33, 27,25,33, 29,27,33, 31,29,33, 0,31,33,
+    0,1,2,    0,3,1,    3,4,1,    3,5,4,    5,6,4,    5,7,6,    7,8,6,    7,9,8,
+    9,10,8,   9,11,10,  11,12,10, 11,13,12, 13,14,12, 13,15,14, 15,16,14, 15,17,16,
+    17,18,16, 17,19,18, 19,20,18, 19,21,20, 21,22,20, 21,23,22, 23,24,22, 23,25,24,
+    25,26,24, 25,27,26, 27,28,26, 27,29,28, 29,30,28, 29,31,30, 31,2,30,  31,0,2,
+    32,2,1,   32,1,4,   32,4,6,   32,6,8,   32,8,10,  32,10,12, 32,12,14, 32,14,16,
+    32,16,18, 32,18,20, 32,20,22, 32,22,24, 32,24,26, 32,26,28, 32,28,30, 32,30,2,
+    3,0,33,   5,3,33,   7,5,33,   9,7,33,   11,9,33,  13,11,33, 15,13,33, 17,15,33,
+    19,17,33, 21,19,33, 23,21,33, 25,23,33, 27,25,33, 29,27,33, 31,29,33, 0,31,33,
   ]
 
 };
+
 
 function _cpy_d(dst_view, src_a) {
   let dst = mcut.HEAPF64.subarray( dst_view>>3, (dst_view>>3) + src_a.length );
@@ -130,7 +118,8 @@ function _cpy_i(dst_view, src_a) {
   for (let i=0; i<src_a.length; i++) { dst[i] = src_a[i]; }
 }
 
-function mcutjs(tf0, tf1, op) {
+
+function mcut_bop(tf0, tf1, op) {
   op = ((typeof op === "undefined") ? 2 : op);
   let sz_double = 8;
   let sz_int = 4;
@@ -149,7 +138,7 @@ function mcutjs(tf0, tf1, op) {
   _cpy_i(f0_ptr, tf0.f);
   _cpy_i(f1_ptr, tf1.f);
 
-  let ret = 
+  let ret =
     mcut.ccall("mcutop",
       "number",
       ["number", "number", "number", "number",
@@ -183,6 +172,7 @@ function mcutjs(tf0, tf1, op) {
       }
     }
 
+
   }
 
   mcut._free(v0_ptr);
@@ -193,16 +183,34 @@ function mcutjs(tf0, tf1, op) {
   return res_vf;
 }
 
-function _main() {
+if (typeof window !== "undefined") {
 
-  for (let it=0; it<100; it++) {
-    console.log("it:", it);
-    mcutjs(cyl0, cyl1, 2);
-  }
+  // so hacky!
+  // So, `Module` is a keyword? Anything other than `Module` doesn't work.
+  // We need to export `mcut` specifically here (in window) so that the
+  // above function, when referencing `mcut`, will succeed.
+  //
+  window['mcut'] = Module;
 
+  // boolean op helper function
+  //
+  window['mcut_bop'] = mcut_bop;
+
+  // example structures so we can immediately use without a ton
+  // of supporting code
+  //
+  window['cyl0'] = cyl0;
+  window['cyl1'] = cyl1;
 }
 
-var _mres = mcut.onRuntimeInitialized = function() {
-  _main();
-}
 
+/*
+module['ENVIRONMENT'] = 'NODE';
+module.exports["mcut"] = mcut;
+module.exports["ok"] = ok;
+module.exports["mcutjs"] = mcutjs;
+
+module.exports["cyl0"] = cyl0;
+module.exports["cyl1"] = cyl1;
+
+*/

@@ -29,11 +29,13 @@
 #include <igl/read_triangle_mesh.h>
 #include <igl/writeOBJ.h>
 
+/*
 double *g_vtx=NULL;
 size_t g_vtx_n=0;
 
 uint32_t *g_face=NULL;
 size_t  g_face_n=0;
+*/
 
 std::vector< std::vector<double> > g_vtx_group;
 std::vector< std::vector<uint32_t> > g_face_group;
