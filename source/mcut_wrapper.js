@@ -199,18 +199,6 @@ if (typeof window !== "undefined") {
   // example structures so we can immediately use without a ton
   // of supporting code
   //
-  window['cyl0'] = cyl0;
-  window['cyl1'] = cyl1;
+  window['mcut_example_cylinder_0'] = cyl0;
+  window['mcut_example_cylinder_1'] = cyl1;
 }
-
-
-/*
-module['ENVIRONMENT'] = 'NODE';
-module.exports["mcut"] = mcut;
-module.exports["ok"] = ok;
-module.exports["mcutjs"] = mcutjs;
-
-module.exports["cyl0"] = cyl0;
-module.exports["cyl1"] = cyl1;
-
-*/

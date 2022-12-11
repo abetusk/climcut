@@ -458,8 +458,9 @@ void show_help(FILE *fp) {
 }
 
 int main(int argc, char **argv) {
-  FILE *ofp=stdout;
-  int _r = 0, ch=0;
+  int _r = 0,
+       ch=0,
+      _ret=0;
 
   InputMesh srcMesh, cutMesh;
   bool meshLoaded = false;
@@ -580,9 +581,6 @@ int main(int argc, char **argv) {
           (int *)cutMesh.faceIndicesArray.data(), cutMesh.faceSizesArray.size(),
           op_idx);
 
-  std::string base_fn = "_out";
-  int _ret=0;
-
-  _ret = print_fn(base_fn, out_fmt, -1);
+  _ret = print_fn(out_fn, out_fmt, -1);
   if (_ret < 0) { exit(-1); }
 }
