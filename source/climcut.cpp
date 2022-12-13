@@ -575,11 +575,15 @@ int main(int argc, char **argv) {
   _r = loadMeshOFF(cutMesh, clip_fn.c_str());
   if (_r < 0) { fprintf(stderr, "error loading clip file"); exit(-1); }
 
+  _ret =
   mcutop( srcMesh.vertexCoordsArray.data(), srcMesh.vertexCoordsArray.size()/3,
           (int *)srcMesh.faceIndicesArray.data(), srcMesh.faceSizesArray.size(),
           cutMesh.vertexCoordsArray.data(), cutMesh.vertexCoordsArray.size()/3,
           (int *)cutMesh.faceIndicesArray.data(), cutMesh.faceSizesArray.size(),
           op_idx);
+  if (_ret < 0) {
+    fprintf(stderr, "got error %i\n", _ret);
+  }
 
   _ret = print_fn(out_fn, out_fmt, -1);
   if (_ret < 0) { exit(-1); }
